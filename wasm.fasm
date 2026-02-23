@@ -1,0 +1,8 @@
+macro format?.WASM?
+    format binary as 'wasm'
+
+    include 'encoding.fasm'
+    include 'instructions.fasm'
+
+    include 'format/wasm.fasm'
+end macro

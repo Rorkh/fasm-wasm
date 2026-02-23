@@ -1,0 +1,30 @@
+macro leb128? mode, item, location ; uleb128 & sleb128
+    local least?, more?
+
+    value? = item
+    more? = $01
+
+    local ptr
+    ptr = 0
+
+    while (more)
+        least? = value and $7F
+        value? = value shr $07
+        more? = $00
+    
+        if ~ ((value = $00) | ((value = -$01) & (least = $7F)))
+            least? = least or $80
+            more? = $01
+        end if
+
+        match =store?, mode
+            store least : byte at location + ptr
+        else match =emit?, mode
+            db least
+        else match =pad?, mode
+            db 0
+        end match
+
+        ptr = ptr + 1
+    end while
+end macro

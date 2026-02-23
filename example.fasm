@@ -1,0 +1,19 @@
+include 'wasm.fasm'
+format wasm
+
+section memory
+
+list 1
+memory i32, 1280*720
+
+section global
+
+list 1
+
+globaltype NUMBER_I32, 1
+i32.const 0
+
+section export
+
+list 1
+export "URMOM", EXTERN_GLOBAL, 0

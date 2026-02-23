@@ -1,0 +1,77 @@
+MAGIC equ 0x00, 0x61, 0x73, 0x6D
+VERSION equ 0x01, 0x00, 0x00, 0x00
+
+db MAGIC
+db VERSION
+
+namespace WasmContext
+    LAST_SECTION_SIZE = 0
+    LAST_SECTION_SIZE_POINTER = 0
+
+    LAST_SECTION_OFFSET = 0
+
+    SECTION_ID = -1
+end namespace
+
+macro terminate_section
+    virtual at $%
+        WasmContext.LAST_SECTION_SIZE = $% - WasmContext.LAST_SECTION_OFFSET
+    end virtual
+        
+    leb128 store, WasmContext.LAST_SECTION_SIZE, WasmContext.LAST_SECTION_SIZE_POINTER
+    WasmContext.SECTION_ID = -1
+end macro
+
+macro section? id
+    match =custom?, id
+        SECTION_ID = 0
+    else match =type?, id
+        SECTION_ID = 1
+    else match =import?, id
+        SECTION_ID = 2
+    else match =function?, id
+        SECTION_ID = 3
+    else match =table?, id
+        SECTION_ID = 4
+    else match =memory?, id
+        SECTION_ID = 5
+    else match =global?, id
+        SECTION_ID = 6
+    else match =export?, id
+        SECTION_ID = 7
+    else match =start?, id
+        SECTION_ID = 8
+    else match =element?, id
+        SECTION_ID = 9
+    else match =code?, id
+        SECTION_ID = 10
+    else match =data?, id
+        SECTION_ID = 11
+    else match =tag?, id
+        SECTION_ID = 13
+    else
+        SECTION_ID = id
+    end match
+
+    if WasmContext.SECTION_ID <> -1 & SECTION_ID <> WasmContext.SECTION_ID
+        terminate_section
+    end if
+
+    WasmContext.SECTION_ID = SECTION_ID
+    db SECTION_ID
+
+    WasmContext.LAST_SECTION_SIZE_POINTER = $%
+    leb128 pad, WasmContext.LAST_SECTION_SIZE
+    
+    WasmContext.LAST_SECTION_OFFSET = $%
+
+    macro end?.section?!
+        terminate_section
+    end macro
+end macro
+
+postpone
+    if WasmContext.SECTION_ID <> -1
+        terminate_section
+    end if
+end postpone
